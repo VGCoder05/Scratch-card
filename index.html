@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scratch Card</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ffd700;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    p.subtitle {
+      font-size: 1rem;
+      color: #aaa;
+      margin-bottom: 30px;
+      letter-spacing: 1px;
+    }
+
+    .card-wrapper {
+      position: relative;
+      width: 320px;
+      height: 200px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 3px #ffd700;
+      overflow: hidden;
+    }
+
+    /* ── Prize layer (behind) ── */
+    .prize-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+      border-radius: 20px;
+      gap: 6px;
+    }
+
+    .prize-label {
+      font-size: 1rem;
+      color: #888;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .prize-amount {
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 12px rgba(255,215,0,0.6));
+    }
+
+    .prize-currency {
+      font-size: 1.2rem;
+      color: #ffd70099;
+      letter-spacing: 2px;
+    }
+
+    /* ── Canvas (scratch layer on top) ── */
+    canvas {
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    button {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0px);
+    }
+
+    #revealBtn {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a1a1a;
+      box-shadow: 0 6px 20px rgba(255,215,0,0.4);
+    }
+
+    #resetBtn {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    #resetBtn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* ── Win message ── */
+    .win-message {
+      margin-top: 24px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffd700;
+      letter-spacing: 2px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      text-shadow: 0 0 16px rgba(255,215,0,0.6);
+    }
+
+    .win-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Confetti canvas ── */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <h1>🎟 Scratch & Win</h1>
+  <p class="subtitle">Scratch the card to reveal your prize!</p>
+
+  <div class="card-wrapper">
+    <!-- Prize shown underneath -->
+    <div class="prize-layer" id="prizeLayer">
+      <div class="prize-label">You Win</div>
+      <div class="prize-amount" id="prizeAmount">--</div>
+      <div class="prize-currency">DOLLARS</div>
+    </div>
+    <!-- Scratch canvas on top -->
+    <canvas id="scratchCanvas" width="320" height="200"></canvas>
+  </div>
+
+  <div class="btn-row">
+    <button id="revealBtn">✨ Reveal All</button>
+    <button id="resetBtn">🔄 New Card</button>
+  </div>
+
+  <div class="win-message" id="winMessage"></div>
+
+  <script>
+    // ─── Config ───────────────────────────────────────────
+    const PRIZES       = [20, 50, 100];
+    const BRUSH_SIZE   = 36;
+    const REVEAL_THRESHOLD = 0.55; // 55% scratched = auto-reveal
+
+    // ─── State ────────────────────────────────────────────
+    let isDrawing    = false;
+    let prize        = 0;
+    let revealed     = false;
+    let confettiAnim = null;
+
+    // ─── Elements ─────────────────────────────────────────
+    const scratchCanvas  = document.getElementById('scratchCanvas');
+    const ctx            = scratchCanvas.getContext('2d');
+    const prizeAmount    = document.getElementById('prizeAmount');
+    const winMessage     = document.getElementById('winMessage');
+    const confettiCanvas = document.getElementById('confettiCanvas');
+    const cCtx           = confettiCanvas.getContext('2d');
+
+    // ─── Helpers ──────────────────────────────────────────
+    function randomPrize() {
+      return PRIZES[Math.floor(Math.random() * PRIZES.length)];
+    }
+
+    function getPos(e) {
+      const rect = scratchCanvas.getBoundingClientRect();
+      const scaleX = scratchCanvas.width  / rect.width;
+      const scaleY = scratchCanvas.height / rect.height;
+      const src = e.touches ? e.touches[0] : e;
+      return {
+        x: (src.clientX - rect.left) * scaleX,
+        y: (src.clientY - rect.top)  * scaleY,
+      };
+    }
+
+    function scratchAt(x, y) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, BRUSH_SIZE, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function getScratchedPercent() {
+      const pixels = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height).data;
+      let cleared = 0;
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] === 0) cleared++;
+      }
+      return cleared / (scratchCanvas.width * scratchCanvas.height);
+    }
+
+    function revealAll() {
+      if (revealed) return;
+      revealed = true;
+      ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      showWinMessage();
+      launchConfetti();
+    }
+
+    function showWinMessage() {
+      const msgs = {
+        20:  '🎉 Nice! You won $20!',
+        50:  '🔥 Great! You won $50!',
+        100: '🚀 JACKPOT! You won $100!'
+      };
+      winMessage.textContent = msgs[prize] || `You won $${prize}!`;
+      winMessage.classList.add('show');
+    }
+
+    // ─── Draw scratch overlay ──────────────────────────────
+    function drawScratchLayer() {
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Silver gradient background
+      const grad = ctx.createLinearGradient(0, 0, 320, 200);
+      grad.addColorStop(0,   '#c0c0c0');
+      grad.addColorStop(0.3, '#e8e8e8');
+      grad.addColorStop(0.5, '#f5f5f5');
+      grad.addColorStop(0.7, '#d0d0d0');
+      grad.addColorStop(1,   '#a8a8a8');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 320, 200);
+
+      // Subtle dot pattern
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      for (let x = 10; x < 320; x += 18) {
+        for (let y = 10; y < 200; y += 18) {
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Instruction text
+      ctx.fillStyle   = 'rgba(80,80,80,0.9)';
+      ctx.font        = 'bold 22px Segoe UI';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🪙  SCRATCH HERE  🪙', 160, 100);
+
+      ctx.font      = '14px Segoe UI';
+      ctx.fillStyle = 'rgba(80,80,80,0.6)';
+      ctx.fillText('Use finger or mouse', 160, 135);
+    }
+
+    // ─── Init card ────────────────────────────────────────
+    function initCard() {
+      // Pick prize
+      prize = randomPrize();
+      prizeAmount.textContent = `$${prize}`;
+      winMessage.classList.remove('show');
+      revealed = false;
+
+      // Stop old confetti
+      if (confettiAnim) { cancelAnimationFrame(confettiAnim); confettiAnim = null; }
+      cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+      // Draw scratch layer
+      drawScratchLayer();
+    }
+
+    // ─── Mouse / Touch events ─────────────────────────────
+    scratchCanvas.addEventListener('mousedown', e => {
+      if (revealed) return;
+      isDrawing = true;
+      scratchAt(...Object.values(getPos(e)));
+    });
+
+    scratchCanvas.addEventListener('mousemove', e => {
+      if (!isDrawing || revealed) return;
+      scratchAt(...Object.values(getPos(e)));
+      if (getScratchedPercent() >= REVEAL_THRESHOLD) revealAll();
+    });
+
+    scratchCanvas.addEventListener('mouseup',   () => isDrawing = false);
+    scratchCanvas.addEventListener('mouseleave',() => isDrawing = false);
+
+    scratchCanvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (revealed) return;
+      isDrawing = true;
+      scratchAt(...Object.values(getPos(e)));
+    }, { passive: false });
+
+    scratchCanvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (!isDrawing || revealed) return;
+      scratchAt(...Object.values(getPos(e)));
+      if (getScratchedPercent() >= REVEAL_THRESHOLD) revealAll();
+    }, { passive: false });
+
+    scratchCanvas.addEventListener('touchend', () => isDrawing = false);
+
+    // ─── Buttons ──────────────────────────────────────────
+    document.getElementById('revealBtn').addEventListener('click', revealAll);
+    document.getElementById('resetBtn').addEventListener('click', initCard);
+
+    // ─── Confetti ─────────────────────────────────────────
+    function launchConfetti() {
+      confettiCanvas.width  = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+
+      const particles = Array.from({ length: 160 }, () => ({
+        x:   Math.random() * confettiCanvas.width,
+        y:   Math.random() * confettiCanvas.height - confettiCanvas.height,
+        w:   Math.random() * 10 + 6,
+        h:   Math.random() * 6  + 4,
+        color: `hsl(${Math.random()*360},90%,60%)`,
+        rot:   Math.random() * Math.PI * 2,
+        rotV:  (Math.random() - 0.5) * 0.15,
+        vy:    Math.random() * 3 + 2,
+        vx:    (Math.random() - 0.5) * 2,
+      }));
+
+      function draw() {
+        cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        let alive = false;
+        particles.forEach(p => {
+          p.y   += p.vy;
+          p.x   += p.vx;
+          p.rot += p.rotV;
+          if (p.y < confettiCanvas.height + 20) alive = true;
+          cCtx.save();
+          cCtx.translate(p.x + p.w/2, p.y + p.h/2);
+          cCtx.rotate(p.rot);
+          cCtx.fillStyle = p.color;
+          cCtx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          cCtx.restore();
+        });
+        if (alive) confettiAnim = requestAnimationFrame(draw);
+        else cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+      draw();
+    }
+
+    // ─── Start ────────────────────────────────────────────
+    initCard();
+  </script>
+</body>
+</html>
