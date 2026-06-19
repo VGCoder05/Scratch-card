@@ -1,64 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Scratch & Win</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.22.5/babel.min.js"></script>
+
+  <!-- ✅ FIX: Register a custom Babel preset that forces CommonJS modules -->
+  <script>
+    Babel.registerPreset('react', {
+      presets: [
+        [Babel.availablePresets['env'], { modules: 'commonjs' }],
+        [Babel.availablePresets['react']]
+      ]
+    });
+  </script>
+
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --gold:    #ffd700;
+      --gold2:   #ff8c00;
+      --bg1:     #1a1a2e;
+      --bg2:     #16213e;
+      --bg3:     #0f3460;
+      --surface: rgba(255,255,255,0.06);
+      --border:  rgba(255,255,255,0.12);
+      --text:    #ffffff;
+      --muted:   #888;
+      --radius:  16px;
+    }
+
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      font-family: 'Segoe UI', sans-serif;
+      color: var(--text);
+    }
+
+    .page {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-family: 'Segoe UI', sans-serif;
-      color: white;
       padding: 30px 16px;
-      gap: 0;
+      gap: 20px;
     }
 
-    /* ── Header ── */
-    .header { text-align: center; margin-bottom: 28px; }
-    .header h1 {
-      font-size: 2.2rem;
+    .title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,215,0,0.4);
       letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #ffd700;
-      text-shadow: 0 0 20px rgba(255,215,0,0.5);
+      text-align: center;
     }
-    .header p {
-      font-size: 0.95rem;
-      color: #aaa;
-      margin-top: 6px;
-      letter-spacing: 1px;
-    }
-
-    /* ── Step labels ── */
+    .subtitle { font-size: 0.9rem; color: var(--muted); text-align: center; letter-spacing: 1px; }
     .step-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
+      font-size: 0.72rem;
       letter-spacing: 2px;
-      color: #ffd700aa;
+      text-transform: uppercase;
+      color: rgba(255,215,0,0.6);
       margin-bottom: 10px;
-      align-self: flex-start;
-      padding-left: 2px;
     }
 
-    /* ── Category Grid ── */
-    .category-section { width: 100%; max-width: 460px; margin-bottom: 24px; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      width: 100%;
+      max-width: 460px;
+    }
 
-    .category-grid {
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+      letter-spacing: 0.5px;
+    }
+    .btn:hover  { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #1a1a1a;
+      box-shadow: 0 6px 20px rgba(255,215,0,0.3);
+    }
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+    .btn-danger { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .btn-sm  { padding: 7px 14px; font-size: 0.78rem; }
+    .btn-full { width: 100%; }
+
+    .gate-card {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .social-btn {
+      width: 100%;
+      padding: 15px 20px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+    .social-btn:hover  { transform: translateY(-2px); }
+    .social-btn.ig     { border-color: #e1306c60; }
+    .social-btn.ig:hover { background: rgba(225,48,108,0.12); border-color: #e1306c; }
+    .social-btn.wa     { border-color: #25d36660; }
+    .social-btn.wa:hover { background: rgba(37,211,102,0.12); border-color: #25d366; }
+    .social-btn.done   { opacity: 0.6; pointer-events: none; }
+    .check-badge {
+      background: #22c55e;
+      border-radius: 50%;
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+    }
+
+    .cat-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+      width: 100%;
     }
-
     .cat-btn {
-      background: rgba(255,255,255,0.06);
-      border: 1.5px solid rgba(255,255,255,0.12);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
       border-radius: 14px;
       padding: 14px 8px;
       cursor: pointer;
@@ -66,74 +158,44 @@
       flex-direction: column;
       align-items: center;
       gap: 7px;
-      transition: all 0.2s ease;
-      color: white;
+      transition: all 0.2s;
+      color: var(--text);
     }
-    .cat-btn:hover {
-      background: rgba(255,215,0,0.1);
-      border-color: #ffd70060;
-      transform: translateY(-2px);
-    }
-    .cat-btn.active {
-      background: rgba(255,215,0,0.15);
-      border-color: #ffd700;
-      box-shadow: 0 0 18px rgba(255,215,0,0.25);
-    }
-    .cat-btn .cat-icon { font-size: 1.8rem; line-height: 1; }
-    .cat-btn .cat-name { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.5px; color: #ddd; }
-    .cat-btn.active .cat-name { color: #ffd700; }
+    .cat-btn:hover   { background: rgba(255,215,0,0.08); border-color: rgba(255,215,0,0.4); transform: translateY(-2px); }
+    .cat-btn.active  { background: rgba(255,215,0,0.15); border-color: var(--gold); box-shadow: 0 0 18px rgba(255,215,0,0.2); }
+    .cat-icon  { font-size: 1.8rem; }
+    .cat-name  { font-size: 0.75rem; font-weight: 600; color: #ccc; }
+    .cat-btn.active .cat-name { color: var(--gold); }
 
-    /* ── Prize Chips ── */
-    .prize-section { width: 100%; max-width: 460px; margin-bottom: 26px; }
-
-    .prize-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip {
-      background: rgba(255,255,255,0.07);
-      border: 1.5px solid rgba(255,255,255,0.15);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
       border-radius: 50px;
-      padding: 7px 18px;
-      font-size: 0.85rem;
+      padding: 6px 16px;
+      font-size: 0.82rem;
       font-weight: 700;
       color: #ccc;
-      letter-spacing: 0.5px;
       transition: all 0.2s;
     }
-
-    .chip.highlight {
-      background: linear-gradient(135deg, #ffd700, #ff8c00);
+    .chip.won {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
       border-color: transparent;
       color: #1a1a1a;
       box-shadow: 0 4px 14px rgba(255,165,0,0.4);
       transform: scale(1.05);
     }
 
-    .prize-placeholder {
-      font-size: 0.85rem;
-      color: #555;
-      font-style: italic;
-    }
-
-    /* ── Card wrapper ── */
-    .card-section { width: 100%; max-width: 460px; margin-bottom: 20px; }
-
-    .card-wrapper {
+    .scratch-wrap {
       position: relative;
       width: 100%;
+      max-width: 460px;
       height: 200px;
       border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 3px #ffd700;
       overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 3px var(--gold);
     }
-
-    /* dimmed before category selected */
-    .card-wrapper.locked { filter: brightness(0.4); pointer-events: none; }
-
-    /* ── Prize layer ── */
+    .scratch-wrap.locked { filter: brightness(0.35); pointer-events: none; }
     .prize-layer {
       position: absolute;
       inset: 0;
@@ -142,508 +204,964 @@
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
-      border-radius: 20px;
       gap: 4px;
     }
-    .prize-cat-tag {
-      font-size: 0.75rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #888;
-    }
-    .prize-icon-big { font-size: 2rem; line-height: 1; }
-    .prize-amount {
-      font-size: 4.2rem;
+    .prize-tag  { font-size: 0.72rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+    .prize-icon { font-size: 2rem; }
+    .prize-value {
+      font-size: 3.8rem;
       font-weight: 900;
       line-height: 1;
-      background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700);
+      background: linear-gradient(135deg, var(--gold), var(--gold2), var(--gold));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      filter: drop-shadow(0 0 12px rgba(255,215,0,0.6));
+      filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));
     }
-    .prize-sublabel { font-size: 0.85rem; color: #ffd70099; letter-spacing: 2px; }
-
-    /* ── Scratch canvas ── */
-    canvas#scratchCanvas {
+    .prize-sub { font-size: 0.8rem; color: rgba(255,215,0,0.6); letter-spacing: 2px; }
+    #scratchCanvas {
       position: absolute;
       inset: 0;
-      border-radius: 20px;
       cursor: crosshair;
       touch-action: none;
+      border-radius: 20px;
     }
 
-    /* ── Buttons ── */
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      width: 100%;
-      max-width: 460px;
-    }
-    button.action-btn {
-      flex: 1;
-      padding: 13px 10px;
-      border: none;
-      border-radius: 50px;
-      font-size: 0.9rem;
+    .win-banner {
+      font-size: 1.2rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
-    }
-    button.action-btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-    button.action-btn:not(:disabled):hover { transform: translateY(-2px); }
-    button.action-btn:not(:disabled):active { transform: translateY(0); }
-
-    #revealBtn {
-      background: linear-gradient(135deg, #ffd700, #ff8c00);
-      color: #1a1a1a;
-      box-shadow: 0 6px 20px rgba(255,215,0,0.35);
-    }
-    #resetBtn {
-      background: rgba(255,255,255,0.08);
-      color: white;
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-    #resetBtn:not(:disabled):hover { background: rgba(255,255,255,0.15); }
-
-    /* ── Win message ── */
-    .win-message {
-      margin-top: 20px;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #ffd700;
-      letter-spacing: 1.5px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      text-shadow: 0 0 16px rgba(255,215,0,0.6);
+      color: var(--gold);
       text-align: center;
-      min-height: 30px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 16px rgba(255,215,0,0.5);
+      min-height: 28px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.5s, transform 0.5s;
     }
-    .win-message.show { opacity: 1; transform: translateY(0); }
+    .win-banner.show { opacity: 1; transform: translateY(0); }
 
-    /* ── Confetti ── */
-    #confettiCanvas {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 999;
+    .admin-page {
+      min-height: 100vh;
+      padding: 30px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
     }
+    .admin-header {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-title { font-size: 1.6rem; font-weight: 900; color: var(--gold); letter-spacing: 1px; }
+    .admin-section { width: 100%; max-width: 680px; }
+    .section-head {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-admin-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .cat-admin-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .cat-admin-name { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .prize-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .prize-row input {
+      flex: 1;
+      min-width: 80px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .prize-row input:focus { border-color: var(--gold); }
+    .weight-badge {
+      background: rgba(255,215,0,0.1);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+    .add-form {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .form-grid input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.88rem;
+      outline: none;
+      width: 100%;
+    }
+    .form-grid input:focus { border-color: var(--gold); }
+    .form-grid input::placeholder { color: var(--muted); }
+
+    .login-box {
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+    }
+    .login-box input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      text-align: center;
+      letter-spacing: 3px;
+    }
+    .login-box input:focus { border-color: var(--gold); }
+    .error-msg { color: #fca5a5; font-size: 0.85rem; }
+
+    .social-config input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .social-config input:focus { border-color: var(--gold); }
+    .social-config label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 4px; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 0.9rem; color: #ccc; }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.15);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      left: 3px; bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    input:checked + .slider { background: var(--gold); }
+    input:checked + .slider::before { transform: translateX(20px); }
+
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255,215,0,0.1);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 50px;
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 3px; }
   </style>
 </head>
 <body>
+<canvas id="confetti"></canvas>
+<div id="root"></div>
 
-<canvas id="confettiCanvas"></canvas>
+<!-- ✅ FIX: Use data-presets="app" to match our registered preset above -->
+<script type="text/babel">
 
-<div class="header">
-  <h1>🎟 Scratch &amp; Win</h1>
-  <p>Pick a category, then scratch your card!</p>
-</div>
+const { useState, useEffect, useRef, useCallback } = React;
 
-<!-- STEP 1 – Category -->
-<div class="category-section">
-  <div class="step-label">① Choose a Category</div>
-  <div class="category-grid" id="categoryGrid"></div>
-</div>
+// ════════════════════════════════════════════════════════════
+//  📦  StorageService — ONLY file to change when adding DB
+// ════════════════════════════════════════════════════════════
+const StorageService = {
+  getPrizeConfig: () => {
+    // 🔌 DB SWAP: return await fetch('/api/prize-config').then(r => r.json())
+    const raw = localStorage.getItem('prizeConfig');
+    return raw ? JSON.parse(raw) : getDefaultConfig();
+  },
+  savePrizeConfig: (config) => {
+    // 🔌 DB SWAP: await fetch('/api/prize-config', { method: 'PUT', body: JSON.stringify(config) })
+    localStorage.setItem('prizeConfig', JSON.stringify(config));
+  },
+  getSettings: () => {
+    // 🔌 DB SWAP: return await fetch('/api/settings').then(r => r.json())
+    const raw = localStorage.getItem('appSettings');
+    return raw ? JSON.parse(raw) : getDefaultSettings();
+  },
+  saveSettings: (settings) => {
+    // 🔌 DB SWAP: await fetch('/api/settings', { method: 'PUT', body: JSON.stringify(settings) })
+    localStorage.setItem('appSettings', JSON.stringify(settings));
+  },
+  logSession: (data) => {
+    // 🔌 DB SWAP: await fetch('/api/sessions', { method: 'POST', body: JSON.stringify(data) })
+    const sessions = JSON.parse(localStorage.getItem('sessions') || '[]');
+    sessions.push({ ...data, timestamp: new Date().toISOString() });
+    localStorage.setItem('sessions', JSON.stringify(sessions));
+  },
+  getSessions: () => {
+    // 🔌 DB SWAP: return await fetch('/api/sessions').then(r => r.json())
+    return JSON.parse(localStorage.getItem('sessions') || '[]');
+  },
+};
 
-<!-- STEP 2 – Prize preview -->
-<div class="prize-section">
-  <div class="step-label">② Possible Prizes</div>
-  <div class="prize-chips" id="prizeChips">
-    <span class="prize-placeholder">Select a category to see prizes…</span>
-  </div>
-</div>
-
-<!-- STEP 3 – Scratch Card -->
-<div class="card-section">
-  <div class="step-label">③ Scratch to Reveal</div>
-  <div class="card-wrapper locked" id="cardWrapper">
-    <div class="prize-layer" id="prizeLayer">
-      <div class="prize-cat-tag"  id="prizeCatTag">—</div>
-      <div class="prize-icon-big" id="prizeIconBig"></div>
-      <div class="prize-amount"   id="prizeAmount">—</div>
-      <div class="prize-sublabel" id="prizeSublabel"></div>
-    </div>
-    <canvas id="scratchCanvas" width="460" height="200"></canvas>
-  </div>
-</div>
-
-<div class="btn-row">
-  <button class="action-btn" id="revealBtn" disabled>✨ Reveal All</button>
-  <button class="action-btn" id="resetBtn"  disabled>🔄 New Card</button>
-</div>
-
-<div class="win-message" id="winMessage"></div>
-
-<script>
-  // ════════════════════════════════════════════════
-  //  🏷️  PRIZE CONFIG  — Add / edit categories here
-  // ════════════════════════════════════════════════
-  const PRIZE_CONFIG = {
+// ════════════════════════════════════════════════════════════
+//  ⚙️  DEFAULT DATA
+// ════════════════════════════════════════════════════════════
+function getDefaultConfig() {
+  return {
     ac: {
-      label:   "AC",
-      icon:    "🌬️",
-      color:   "#00cfff",
-      sublabel: "OFF on AC",
+      label: 'AC', icon: '🌬️', color: '#00cfff', sublabel: 'OFF on AC',
       prizes: [
-        { value: "₹2,000 OFF",  weight: 50 },
-        { value: "₹5,000 OFF",  weight: 30 },
-        { value: "₹10,000 OFF", weight: 20 },
+        { value: '₹2,000 OFF', weight: 50 },
+        { value: '₹5,000 OFF', weight: 30 },
+        { value: '₹10,000 OFF', weight: 20 },
       ],
     },
     tv: {
-      label:   "TV",
-      icon:    "📺",
-      color:   "#a78bfa",
-      sublabel: "OFF on TV",
+      label: 'TV', icon: '📺', color: '#a78bfa', sublabel: 'OFF on TV',
       prizes: [
-        { value: "₹1,500 OFF", weight: 50 },
-        { value: "₹3,000 OFF", weight: 30 },
-        { value: "₹7,000 OFF", weight: 20 },
+        { value: '₹1,500 OFF', weight: 50 },
+        { value: '₹3,000 OFF', weight: 30 },
+        { value: '₹7,000 OFF', weight: 20 },
       ],
     },
     phone: {
-      label:   "Phone",
-      icon:    "📱",
-      color:   "#34d399",
-      sublabel: "OFF on Phone",
+      label: 'Phone', icon: '📱', color: '#34d399', sublabel: 'OFF on Phone',
       prizes: [
-        { value: "₹500 OFF",   weight: 50 },
-        { value: "₹1,000 OFF", weight: 35 },
-        { value: "₹3,000 OFF", weight: 15 },
+        { value: '₹500 OFF',   weight: 50 },
+        { value: '₹1,000 OFF', weight: 35 },
+        { value: '₹3,000 OFF', weight: 15 },
       ],
     },
     giftcard: {
-      label:   "Gift Card",
-      icon:    "🎁",
-      color:   "#f472b6",
-      sublabel: "Gift Card",
+      label: 'Gift Card', icon: '🎁', color: '#f472b6', sublabel: 'Gift Card',
       prizes: [
-        { value: "$25",  weight: 50 },
-        { value: "$50",  weight: 35 },
-        { value: "$100", weight: 15 },
-      ],
-    },
-    cash: {
-      label:   "Cash",
-      icon:    "💰",
-      color:   "#fbbf24",
-      sublabel: "Cash Back",
-      prizes: [
-        { value: "$10", weight: 50 },
-        { value: "$20", weight: 35 },
-        { value: "$50", weight: 15 },
-      ],
-    },
-    travel: {
-      label:   "Travel",
-      icon:    "✈️",
-      color:   "#fb923c",
-      sublabel: "Travel Voucher",
-      prizes: [
-        { value: "$100 Voucher", weight: 50 },
-        { value: "$250 Voucher", weight: 30 },
-        { value: "$500 Voucher", weight: 20 },
+        { value: '$25',  weight: 50 },
+        { value: '$50',  weight: 35 },
+        { value: '$100', weight: 15 },
       ],
     },
   };
+}
 
-  // ════════════════════════════════════════════════
-  //  ⚙️  SETTINGS
-  // ════════════════════════════════════════════════
-  const BRUSH_SIZE        = 36;
-  const REVEAL_THRESHOLD  = 0.55;
+function getDefaultSettings() {
+  return {
+    igHandle:    'your_instagram',
+    igLink:      'https://instagram.com/your_instagram',
+    waLink:      'https://wa.me/1234567890',
+    requireIG:   true,
+    requireWA:   true,
+    adminKey:    'ADMIN2024',
+    skipKey:     'SKIP2024',
+    cardTitle:   '🎟 Scratch & Win',
+    cardSubtitle:'Follow us, then scratch your prize!',
+  };
+}
 
-  // ════════════════════════════════════════════════
-  //  🔧  STATE
-  // ════════════════════════════════════════════════
-  let selectedCategory = null;
-  let currentPrize     = null;
-  let isDrawing        = false;
-  let revealed         = false;
-  let confettiAnim     = null;
-
-  // ════════════════════════════════════════════════
-  //  🎯  ELEMENT REFS
-  // ════════════════════════════════════════════════
-  const scratchCanvas  = document.getElementById('scratchCanvas');
-  const ctx            = scratchCanvas.getContext('2d');
-  const cardWrapper    = document.getElementById('cardWrapper');
-  const prizeAmount    = document.getElementById('prizeAmount');
-  const prizeCatTag    = document.getElementById('prizeCatTag');
-  const prizeIconBig   = document.getElementById('prizeIconBig');
-  const prizeSublabel  = document.getElementById('prizeSublabel');
-  const winMessage     = document.getElementById('winMessage');
-  const prizeChips     = document.getElementById('prizeChips');
-  const categoryGrid   = document.getElementById('categoryGrid');
-  const confettiCanvas = document.getElementById('confettiCanvas');
-  const cCtx           = confettiCanvas.getContext('2d');
-  const revealBtn      = document.getElementById('revealBtn');
-  const resetBtn       = document.getElementById('resetBtn');
-
-  // ════════════════════════════════════════════════
-  //  🏗️  BUILD CATEGORY BUTTONS
-  // ════════════════════════════════════════════════
-  Object.entries(PRIZE_CONFIG).forEach(([key, cat]) => {
-    const btn = document.createElement('button');
-    btn.className   = 'cat-btn';
-    btn.dataset.key = key;
-    btn.innerHTML   = `<span class="cat-icon">${cat.icon}</span>
-                       <span class="cat-name">${cat.label}</span>`;
-    btn.addEventListener('click', () => selectCategory(key));
-    categoryGrid.appendChild(btn);
-  });
-
-  // ════════════════════════════════════════════════
-  //  🎯  WEIGHTED RANDOM PICK
-  //  Object lookup table used here — O(1) access
-  // ════════════════════════════════════════════════
-  function pickWeightedPrize(categoryKey) {
-    const prizes = PRIZE_CONFIG[categoryKey].prizes;   // direct lookup ✅
-    const totalWeight = prizes.reduce((sum, p) => sum + p.weight, 0);
-    let rand = Math.random() * totalWeight;
+// ════════════════════════════════════════════════════════════
+//  🎯  PrizeEngine — Isolated logic module
+// ════════════════════════════════════════════════════════════
+const PrizeEngine = {
+  pick: (prizes) => {
+    const total = prizes.reduce((s, p) => s + p.weight, 0);
+    let rand = Math.random() * total;
     for (const prize of prizes) {
       rand -= prize.weight;
       if (rand <= 0) return prize.value;
     }
     return prizes[prizes.length - 1].value;
-  }
+  },
+  getOdds: (prizes) => {
+    if (!prizes || prizes.length === 0) return [];
+    const total = prizes.reduce((s, p) => s + p.weight, 0);
+    return prizes.map(p => ({ ...p, pct: ((p.weight / total) * 100).toFixed(0) }));
+  },
+};
 
-  // ════════════════════════════════════════════════
-  //  🗂️  SELECT CATEGORY
-  // ════════════════════════════════════════════════
-  function selectCategory(key) {
-    selectedCategory = key;
-    const cat = PRIZE_CONFIG[key];
+// ════════════════════════════════════════════════════════════
+//  🪝  HOOKS
+// ════════════════════════════════════════════════════════════
+function useURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    adminParam: params.get('admin') || '',
+    skipParam:  params.get('skip')  || '',
+    uid:        params.get('uid')   || '',
+  };
+}
 
-    // Highlight active button
-    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector(`[data-key="${key}"]`).classList.add('active');
+function usePrizeConfig() {
+  const [config, setConfig] = useState(() => StorageService.getPrizeConfig());
+  const save = useCallback((newConfig) => {
+    setConfig(newConfig);
+    StorageService.savePrizeConfig(newConfig);
+  }, []);
+  return [config, save];
+}
 
-    // Show prize chips
-    prizeChips.innerHTML = cat.prizes.map((p, i) => `
-      <span class="chip" data-index="${i}">${cat.icon} ${p.value}</span>
-    `).join('');
+function useSettings() {
+  const [settings, setSettings] = useState(() => StorageService.getSettings());
+  const save = useCallback((s) => {
+    setSettings(s);
+    StorageService.saveSettings(s);
+  }, []);
+  return [settings, save];
+}
 
-    // Reset & init card
-    initCard();
-  }
+// ════════════════════════════════════════════════════════════
+//  🎊  Confetti util
+// ════════════════════════════════════════════════════════════
+function launchConfetti(color = '#ffd700') {
+  const canvas = document.getElementById('confetti');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const particles = Array.from({ length: 180 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    w: Math.random() * 10 + 6,
+    h: Math.random() * 6 + 4,
+    c: Math.random() > 0.4 ? color : `hsl(${Math.random()*360},85%,60%)`,
+    rot: Math.random() * Math.PI * 2,
+    rv:  (Math.random() - 0.5) * 0.14,
+    vy:  Math.random() * 3 + 2,
+    vx:  (Math.random() - 0.5) * 2,
+  }));
+  let raf;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      p.y += p.vy; p.x += p.vx; p.rot += p.rv;
+      if (p.y < canvas.height + 20) alive = true;
+      ctx.save();
+      ctx.translate(p.x + p.w/2, p.y + p.h/2);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    if (alive) raf = requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+  return () => cancelAnimationFrame(raf);
+}
 
-  // ════════════════════════════════════════════════
-  //  🃏  INIT CARD
-  // ════════════════════════════════════════════════
-  function initCard() {
-    if (!selectedCategory) return;
+// ════════════════════════════════════════════════════════════
+//  🔐  SocialGate component
+// ════════════════════════════════════════════════════════════
+function SocialGate({ settings, onPass }) {
+  const [igDone, setIgDone] = useState(false);
+  const [waDone, setWaDone] = useState(false);
+  const needIG  = settings.requireIG;
+  const needWA  = settings.requireWA;
+  const canPass = (!needIG || igDone) && (!needWA || waDone);
 
-    const cat   = PRIZE_CONFIG[selectedCategory];
-    currentPrize = pickWeightedPrize(selectedCategory);
-    revealed     = false;
+  const openIG = () => { window.open(settings.igLink, '_blank'); setTimeout(() => setIgDone(true), 1500); };
+  const openWA = () => { window.open(settings.waLink, '_blank'); setTimeout(() => setWaDone(true), 1500); };
 
-    // Update prize layer
-    prizeAmount.textContent   = currentPrize;
-    prizeCatTag.textContent   = cat.label;
-    prizeIconBig.textContent  = cat.icon;
-    prizeSublabel.textContent = cat.sublabel;
-    prizeAmount.style.background = `linear-gradient(135deg, ${cat.color}, #ff8c00, ${cat.color})`;
-    prizeAmount.style.webkitBackgroundClip = 'text';
-    prizeAmount.style.backgroundClip       = 'text';
+  return (
+    <div className="page">
+      <div style={{textAlign:'center'}}>
+        <div className="title">🎟 Scratch &amp; Win</div>
+        <div className="subtitle" style={{marginTop:6}}>Complete the steps below to unlock your card</div>
+      </div>
+      <div className="gate-card">
+        {needIG && (
+          <button className={`social-btn ig ${igDone ? 'done' : ''}`} onClick={openIG}>
+            <span><span style={{marginRight:10}}>📸</span>{igDone ? 'Following on Instagram ✓' : `Follow @${settings.igHandle}`}</span>
+            {igDone ? <span className="check-badge">✓</span> : <span style={{fontSize:'0.8rem',color:'#e1306c'}}>TAP →</span>}
+          </button>
+        )}
+        {needWA && (
+          <button className={`social-btn wa ${waDone ? 'done' : ''}`} onClick={openWA}>
+            <span><span style={{marginRight:10}}>💬</span>{waDone ? 'Joined WhatsApp ✓' : 'Join our WhatsApp'}</span>
+            {waDone ? <span className="check-badge">✓</span> : <span style={{fontSize:'0.8rem',color:'#25d366'}}>TAP →</span>}
+          </button>
+        )}
+        {!needIG && !needWA && (
+          <div style={{color:'var(--muted)',fontSize:'0.9rem',textAlign:'center'}}>Social gate is currently disabled.</div>
+        )}
+        <button className="btn btn-gold btn-full" disabled={!canPass} onClick={onPass} style={{marginTop:8}}>
+          {canPass ? '🎉 Unlock My Card!' : 'Complete steps above first'}
+        </button>
+        {!canPass && (needIG || needWA) && (
+          <div style={{fontSize:'0.75rem',color:'var(--muted)',textAlign:'center'}}>
+            Tap each button, complete the action, then come back
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
-    // Unlock card
-    cardWrapper.classList.remove('locked');
+// ════════════════════════════════════════════════════════════
+//  🗂️  CategorySelector component
+// ════════════════════════════════════════════════════════════
+function CategorySelector({ config, selected, onSelect }) {
+  const keys = Object.keys(config);
+  if (keys.length === 0) return (
+    <div style={{color:'var(--muted)',textAlign:'center',padding:'20px'}}>
+      No categories yet. Ask admin to add some.
+    </div>
+  );
+  return (
+    <div style={{width:'100%',maxWidth:460}}>
+      <div className="step-label">① Choose a Category</div>
+      <div className="cat-grid">
+        {keys.map(key => (
+          <button key={key} className={`cat-btn ${selected === key ? 'active' : ''}`} onClick={() => onSelect(key)}>
+            <span className="cat-icon">{config[key].icon}</span>
+            <span className="cat-name">{config[key].label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-    // Reset UI
-    winMessage.classList.remove('show');
-    winMessage.textContent = '';
-    revealBtn.disabled = false;
-    resetBtn.disabled  = false;
+// ════════════════════════════════════════════════════════════
+//  🪙  ScratchCard component
+// ════════════════════════════════════════════════════════════
+function ScratchCard({ category, catKey, prize, onReveal, revealed }) {
+  const canvasRef   = useRef(null);
+  const drawing     = useRef(false);
+  const revealedRef = useRef(false);
+  const BRUSH = 36, THRESH = 0.55;
 
-    // Clear highlighted chips
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('highlight'));
-
-    // Stop old confetti
-    if (confettiAnim) { cancelAnimationFrame(confettiAnim); confettiAnim = null; }
-    cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-
-    // Sync canvas size to rendered size
-    const rect = scratchCanvas.getBoundingClientRect();
-    scratchCanvas.width  = rect.width  || 460;
-    scratchCanvas.height = rect.height || 200;
-
-    drawScratchLayer();
-  }
-
-  // ════════════════════════════════════════════════
-  //  🪙  DRAW SILVER SCRATCH LAYER
-  // ════════════════════════════════════════════════
-  function drawScratchLayer() {
-    const W = scratchCanvas.width;
-    const H = scratchCanvas.height;
-
+  const drawLayer = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
     ctx.globalCompositeOperation = 'source-over';
-
-    const grad = ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0,   '#b0b0b0');
-    grad.addColorStop(0.3, '#e0e0e0');
-    grad.addColorStop(0.5, '#f5f5f5');
-    grad.addColorStop(0.7, '#cccccc');
-    grad.addColorStop(1,   '#a0a0a0');
-    ctx.fillStyle = grad;
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#aaa'); g.addColorStop(0.35, '#e2e2e2');
+    g.addColorStop(0.5, '#f5f5f5'); g.addColorStop(0.7, '#ccc'); g.addColorStop(1, '#999');
+    ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
-
-    // Dot pattern
-    ctx.fillStyle = 'rgba(0,0,0,0.05)';
-    for (let x = 10; x < W; x += 18) {
+    for (let x = 10; x < W; x += 18)
       for (let y = 10; y < H; y += 18) {
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fill();
       }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = 'bold 14px Segoe UI'; ctx.fillStyle = 'rgba(60,60,60,0.55)';
+    ctx.fillText(`${category.icon}  ${category.label.toUpperCase()}  ${category.icon}`, W/2, H/2 - 16);
+    ctx.font = 'bold 20px Segoe UI'; ctx.fillStyle = 'rgba(60,60,60,0.8)';
+    ctx.fillText('🪙  SCRATCH HERE  🪙', W/2, H/2 + 14);
+  }, [category]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width  = rect.width  || 460;
+    canvas.height = rect.height || 200;
+    revealedRef.current = false;
+    drawLayer();
+  }, [drawLayer, catKey]);
+
+  useEffect(() => {
+    if (revealed) {
+      const canvas = canvasRef.current;
+      if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     }
+  }, [revealed]);
 
-    // Category label on scratch layer
-    if (selectedCategory) {
-      const cat = PRIZE_CONFIG[selectedCategory];
-      ctx.font      = 'bold 15px Segoe UI';
-      ctx.fillStyle = 'rgba(80,80,80,0.5)';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`${cat.icon}  ${cat.label.toUpperCase()} SCRATCH CARD  ${cat.icon}`, W/2, H/2 - 14);
-    }
+  const getPos = (e) => {
+    const canvas = canvasRef.current;
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - r.left)*sx, y: (src.clientY - r.top)*sy };
+  };
 
-    ctx.font      = 'bold 20px Segoe UI';
-    ctx.fillStyle = 'rgba(60,60,60,0.8)';
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🪙  SCRATCH HERE  🪙', scratchCanvas.width/2, scratchCanvas.height/2 + 14);
-  }
-
-  // ════════════════════════════════════════════════
-  //  ✏️  SCRATCH HELPERS
-  // ════════════════════════════════════════════════
-  function getPos(e) {
-    const rect  = scratchCanvas.getBoundingClientRect();
-    const scaleX = scratchCanvas.width  / rect.width;
-    const scaleY = scratchCanvas.height / rect.height;
-    const src   = e.touches ? e.touches[0] : e;
-    return {
-      x: (src.clientX - rect.left) * scaleX,
-      y: (src.clientY - rect.top)  * scaleY,
-    };
-  }
-
-  function scratchAt(x, y) {
+  const scratch = (x, y) => {
+    const ctx = canvasRef.current.getContext('2d');
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, BRUSH_SIZE, 0, Math.PI * 2);
-    ctx.fill();
-  }
+    ctx.beginPath(); ctx.arc(x, y, BRUSH, 0, Math.PI*2); ctx.fill();
+  };
 
-  function getScratchedPercent() {
-    const pixels = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height).data;
-    let cleared  = 0;
-    for (let i = 3; i < pixels.length; i += 4) {
-      if (pixels[i] === 0) cleared++;
+  const checkReveal = () => {
+    if (revealedRef.current) return;
+    const canvas = canvasRef.current;
+    const px = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    let cleared = 0;
+    for (let i = 3; i < px.length; i += 4) if (px[i] === 0) cleared++;
+    if (cleared / (canvas.width * canvas.height) >= THRESH) {
+      revealedRef.current = true;
+      onReveal();
     }
-    return cleared / (scratchCanvas.width * scratchCanvas.height);
+  };
+
+  return (
+    <div style={{width:'100%',maxWidth:460}}>
+      <div className="step-label" style={{marginBottom:8}}>③ Scratch to Reveal</div>
+      <div className={`scratch-wrap ${!prize ? 'locked' : ''}`}>
+        <div className="prize-layer">
+          <div className="prize-tag">{category?.label || '—'}</div>
+          <div className="prize-icon">{category?.icon || ''}</div>
+          <div className="prize-value">{prize || '?'}</div>
+          <div className="prize-sub">{category?.sublabel || ''}</div>
+        </div>
+        <canvas
+          id="scratchCanvas"
+          ref={canvasRef}
+          style={{width:'100%', height:'200px'}}
+          onMouseDown={e => { if(revealed) return; drawing.current=true; const{x,y}=getPos(e); scratch(x,y); }}
+          onMouseMove={e => { if(!drawing.current||revealed) return; const{x,y}=getPos(e); scratch(x,y); checkReveal(); }}
+          onMouseUp={() => drawing.current=false}
+          onMouseLeave={() => drawing.current=false}
+          onTouchStart={e => { e.preventDefault(); if(revealed) return; drawing.current=true; const{x,y}=getPos(e); scratch(x,y); }}
+          onTouchMove={e => { e.preventDefault(); if(!drawing.current||revealed) return; const{x,y}=getPos(e); scratch(x,y); checkReveal(); }}
+          onTouchEnd={() => drawing.current=false}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+//  🛠️  AdminPanel component
+// ════════════════════════════════════════════════════════════
+function AdminPanel({ config, saveConfig, settings, saveSettings, onExit }) {
+  const [tab,      setTab     ] = useState('categories');
+  const [newCat,   setNewCat  ] = useState({ key:'', label:'', icon:'', color:'#ffd700', sublabel:'' });
+  const [newPrize, setNewPrize] = useState({});
+
+  const addCategory = () => {
+    const k = newCat.key.trim().toLowerCase().replace(/\s+/g,'_');
+    if (!k || !newCat.label || !newCat.icon) return alert('Fill key, label & icon');
+    if (config[k]) return alert('Key already exists');
+    const { key, ...rest } = newCat;
+    saveConfig({ ...config, [k]: { ...rest, prizes: [] } });
+    setNewCat({ key:'', label:'', icon:'', color:'#ffd700', sublabel:'' });
+  };
+
+  const deleteCategory = (key) => {
+    if (!confirm(`Delete "${config[key].label}"?`)) return;
+    const updated = { ...config };
+    delete updated[key];
+    saveConfig(updated);
+  };
+
+  const addPrize = (catKey) => {
+    const np = newPrize[catKey] || { value:'', weight:'' };
+    if (!np.value.trim() || !np.weight) return alert('Fill prize value and weight');
+    const updated = { ...config };
+    updated[catKey] = { ...updated[catKey], prizes: [...updated[catKey].prizes, { value: np.value, weight: parseInt(np.weight) }] };
+    saveConfig(updated);
+    setNewPrize(p => ({ ...p, [catKey]: { value:'', weight:'' } }));
+  };
+
+  const deletePrize = (catKey, idx) => {
+    const updated = { ...config };
+    updated[catKey] = { ...updated[catKey], prizes: updated[catKey].prizes.filter((_,i) => i !== idx) };
+    saveConfig(updated);
+  };
+
+  const updateSetting = (key, val) => saveSettings({ ...settings, [key]: val });
+  const toggleSetting = (key)       => saveSettings({ ...settings, [key]: !settings[key] });
+
+  const tabs = [
+    { id:'categories', label:'🗂 Categories' },
+    { id:'social',     label:'📲 Social Gate' },
+    { id:'settings',   label:'⚙️ Settings' },
+    { id:'sessions',   label:'📊 Sessions' },
+  ];
+
+  return (
+    <div className="admin-page">
+      <div className="admin-header">
+        <div className="admin-title">⚙️ Admin Panel</div>
+        <button className="btn btn-ghost btn-sm" onClick={onExit}>← Exit</button>
+      </div>
+
+      <div style={{display:'flex',gap:8,flexWrap:'wrap',width:'100%',maxWidth:680}}>
+        {tabs.map(t => (
+          <button key={t.id} className={`btn btn-sm ${tab===t.id ? 'btn-gold' : 'btn-ghost'}`} onClick={() => setTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── CATEGORIES ── */}
+      {tab === 'categories' && (
+        <div className="admin-section">
+          <div className="section-head">Manage Categories &amp; Prizes</div>
+
+          {Object.keys(config).length === 0 && (
+            <div style={{color:'var(--muted)',textAlign:'center',padding:20}}>No categories yet.</div>
+          )}
+
+          {Object.entries(config).map(([key, cat]) => (
+            <div key={key} className="cat-admin-card">
+              <div className="cat-admin-head">
+                <div className="cat-admin-name">
+                  <span style={{fontSize:'1.4rem'}}>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                  <span className="badge">key: {key}</span>
+                </div>
+                <button className="btn btn-danger btn-sm" onClick={() => deleteCategory(key)}>🗑 Delete</button>
+              </div>
+
+              {cat.prizes.length === 0 && (
+                <div style={{fontSize:'0.8rem',color:'var(--muted)',marginBottom:10}}>No prizes yet</div>
+              )}
+              {PrizeEngine.getOdds(cat.prizes).map((p, i) => (
+                <div key={i} className="prize-row">
+                  <span style={{fontSize:'0.88rem',flex:1,color:'#eee'}}>{p.value}</span>
+                  <span className="weight-badge">⚖ {p.weight} ({p.pct}%)</span>
+                  <button className="btn btn-danger btn-sm" onClick={() => deletePrize(key, i)}>✕</button>
+                </div>
+              ))}
+
+              <div style={{display:'flex',gap:8,marginTop:10,flexWrap:'wrap'}}>
+                <input
+                  placeholder="Prize value (e.g. ₹5,000 OFF)"
+                  value={(newPrize[key]||{}).value||''}
+                  onChange={e => setNewPrize(p => ({ ...p, [key]: { ...(p[key]||{}), value: e.target.value }}))}
+                  style={{flex:2,background:'rgba(255,255,255,0.05)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 12px',color:'#fff',fontSize:'0.82rem',outline:'none',minWidth:120}}
+                />
+                <input
+                  placeholder="Weight"
+                  type="number"
+                  value={(newPrize[key]||{}).weight||''}
+                  onChange={e => setNewPrize(p => ({ ...p, [key]: { ...(p[key]||{}), weight: e.target.value }}))}
+                  style={{flex:1,background:'rgba(255,255,255,0.05)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 12px',color:'#fff',fontSize:'0.82rem',outline:'none',minWidth:70}}
+                />
+                <button className="btn btn-gold btn-sm" onClick={() => addPrize(key)}>+ Add</button>
+              </div>
+            </div>
+          ))}
+
+          <div className="add-form">
+            <div style={{fontSize:'0.88rem',fontWeight:700,color:'var(--gold)',marginBottom:12}}>+ Add New Category</div>
+            <div className="form-grid">
+              <input placeholder="Key (e.g. fridge)"         value={newCat.key}      onChange={e => setNewCat(c=>({...c, key:e.target.value}))} />
+              <input placeholder="Label (e.g. Fridge)"       value={newCat.label}    onChange={e => setNewCat(c=>({...c, label:e.target.value}))} />
+              <input placeholder="Emoji icon (e.g. 🧊)"     value={newCat.icon}     onChange={e => setNewCat(c=>({...c, icon:e.target.value}))} />
+              <input placeholder="Sub-label (e.g. OFF on…)" value={newCat.sublabel} onChange={e => setNewCat(c=>({...c, sublabel:e.target.value}))} />
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+              <label style={{fontSize:'0.82rem',color:'var(--muted)'}}>Theme Color:</label>
+              <input type="color" value={newCat.color} onChange={e => setNewCat(c=>({...c, color:e.target.value}))}
+                style={{width:40,height:30,border:'none',borderRadius:6,cursor:'pointer',background:'none'}} />
+              <span style={{fontSize:'0.82rem',color:'var(--muted)'}}>{newCat.color}</span>
+            </div>
+            <button className="btn btn-gold" onClick={addCategory}>+ Add Category</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── SOCIAL ── */}
+      {tab === 'social' && (
+        <div className="admin-section">
+          <div className="section-head">Social Gate Configuration</div>
+          <div className="panel social-config">
+            <div className="toggle-row">
+              <span className="toggle-label">📸 Require Instagram Follow</span>
+              <label className="toggle">
+                <input type="checkbox" checked={settings.requireIG} onChange={() => toggleSetting('requireIG')} />
+                <span className="slider" />
+              </label>
+            </div>
+            <div className="toggle-row">
+              <span className="toggle-label">💬 Require WhatsApp Join</span>
+              <label className="toggle">
+                <input type="checkbox" checked={settings.requireWA} onChange={() => toggleSetting('requireWA')} />
+                <span className="slider" />
+              </label>
+            </div>
+            <div style={{marginTop:16}}>
+              <label>Instagram Handle (shown to users)</label>
+              <input value={settings.igHandle} onChange={e => updateSetting('igHandle', e.target.value)} placeholder="your_username" />
+              <label>Instagram Profile Link</label>
+              <input value={settings.igLink}   onChange={e => updateSetting('igLink',   e.target.value)} placeholder="https://instagram.com/..." />
+              <label>WhatsApp Join Link</label>
+              <input value={settings.waLink}   onChange={e => updateSetting('waLink',   e.target.value)} placeholder="https://wa.me/..." />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SETTINGS ── */}
+      {tab === 'settings' && (
+        <div className="admin-section">
+          <div className="section-head">App Settings</div>
+          <div className="panel social-config">
+            <label>Card Title</label>
+            <input value={settings.cardTitle}    onChange={e => updateSetting('cardTitle',    e.target.value)} />
+            <label>Card Subtitle</label>
+            <input value={settings.cardSubtitle} onChange={e => updateSetting('cardSubtitle', e.target.value)} />
+          </div>
+          <div style={{height:16}} />
+          <div className="section-head">🔐 Secret Keys</div>
+          <div className="panel social-config">
+            <label>Admin Key — URL: <code style={{color:'var(--gold)'}}>?admin=YOUR_KEY</code></label>
+            <input type="password" value={settings.adminKey} onChange={e => updateSetting('adminKey', e.target.value)} placeholder="Admin secret key" />
+            <label>Skip Gate Key — URL: <code style={{color:'var(--gold)'}}>?skip=YOUR_KEY</code></label>
+            <input type="password" value={settings.skipKey}  onChange={e => updateSetting('skipKey',  e.target.value)} placeholder="Skip gate key" />
+            <div style={{fontSize:'0.75rem',color:'var(--muted)',lineHeight:1.6,marginTop:4}}>
+              📌 VIP link example: <code style={{color:'#aaa'}}>yoursite.com?skip=SKIP2024</code>
+            </div>
+          </div>
+          <div style={{height:16}} />
+          <div className="section-head">⚠️ Danger Zone</div>
+          <div className="panel">
+            <button className="btn btn-danger" onClick={() => { if(!confirm('Reset ALL data?')) return; localStorage.clear(); window.location.reload(); }}>
+              🗑 Reset All Data
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── SESSIONS ── */}
+      {tab === 'sessions' && (
+        <div className="admin-section">
+          <div className="section-head">📊 Scratch Sessions</div>
+          <div style={{fontSize:'0.78rem',color:'var(--muted)',marginBottom:12}}>
+            🔌 DB-ready structure — swap StorageService to push to your backend
+          </div>
+          {StorageService.getSessions().length === 0
+            ? <div style={{color:'var(--muted)',padding:20,textAlign:'center'}}>No sessions yet.</div>
+            : (
+              <div style={{overflowX:'auto'}}>
+                <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.8rem'}}>
+                  <thead>
+                    <tr style={{borderBottom:'1px solid var(--border)',textAlign:'left',color:'var(--gold)'}}>
+                      <th style={{padding:'8px 10px'}}>UID</th>
+                      <th style={{padding:'8px 10px'}}>Category</th>
+                      <th style={{padding:'8px 10px'}}>Prize</th>
+                      <th style={{padding:'8px 10px'}}>Skip</th>
+                      <th style={{padding:'8px 10px'}}>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...StorageService.getSessions()].reverse().map((s, i) => (
+                      <tr key={i} style={{borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                        <td style={{padding:'8px 10px',color:'#aaa'}}>{s.uid || '—'}</td>
+                        <td style={{padding:'8px 10px'}}>{s.categoryIcon} {s.category}</td>
+                        <td style={{padding:'8px 10px',color:'var(--gold)',fontWeight:700}}>{s.prize}</td>
+                        <td style={{padding:'8px 10px'}}>{s.gateSkipped ? '⚡ Yes' : '—'}</td>
+                        <td style={{padding:'8px 10px',color:'var(--muted)'}}>{new Date(s.timestamp).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+//  🔑  AdminLogin component
+// ════════════════════════════════════════════════════════════
+function AdminLogin({ correctKey, onSuccess }) {
+  const [input, setInput] = useState('');
+  const [err,   setErr  ] = useState(false);
+  const attempt = () => {
+    if (input === correctKey) onSuccess();
+    else { setErr(true); setTimeout(() => setErr(false), 2000); }
+  };
+  return (
+    <div className="page">
+      <div className="login-box">
+        <div className="title" style={{fontSize:'1.6rem'}}>⚙️ Admin Access</div>
+        <div className="subtitle">Enter your admin key to continue</div>
+        <input type="password" value={input} placeholder="• • • • • • • •"
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && attempt()} />
+        {err && <div className="error-msg">❌ Incorrect key. Try again.</div>}
+        <button className="btn btn-gold btn-full" onClick={attempt}>Unlock Panel →</button>
+        <div style={{fontSize:'0.75rem',color:'var(--muted)'}}>
+          Tip: use URL <code>?admin=YOUR_KEY</code> to auto-unlock
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+//  🎮  UserFlow component
+// ════════════════════════════════════════════════════════════
+function UserFlow({ config, settings, uid, gateSkipped }) {
+  const [phase,       setPhase      ] = useState(gateSkipped ? 'pick' : 'gate');
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [prize,       setPrize      ] = useState(null);
+  const [revealed,    setRevealed   ] = useState(false);
+  const stopConfetti = useRef(null);
+
+  const selectCategory = (key) => {
+    setSelectedKey(key);
+    setPrize(PrizeEngine.pick(config[key].prizes));
+    setRevealed(false);
+  };
+
+  const handleReveal = () => {
+    if (revealed) return;
+    setRevealed(true);
+    const cat = config[selectedKey];
+    if (stopConfetti.current) stopConfetti.current();
+    stopConfetti.current = launchConfetti(cat.color);
+    StorageService.logSession({ uid, category: cat.label, categoryIcon: cat.icon, prize, gateSkipped });
+  };
+
+  const reset = () => {
+    if (stopConfetti.current) stopConfetti.current();
+    setSelectedKey(null); setPrize(null); setRevealed(false);
+  };
+
+  const selectedCat = selectedKey ? config[selectedKey] : null;
+
+  if (phase === 'gate') return <SocialGate settings={settings} onPass={() => setPhase('pick')} />;
+
+  return (
+    <div className="page">
+      <div style={{textAlign:'center'}}>
+        <div className="title">{settings.cardTitle}</div>
+        <div className="subtitle" style={{marginTop:6}}>{settings.cardSubtitle}</div>
+        {gateSkipped && <div className="badge" style={{marginTop:8}}>⚡ VIP Access</div>}
+      </div>
+
+      <CategorySelector config={config} selected={selectedKey} onSelect={selectCategory} />
+
+      {selectedKey && (
+        <>
+          <div style={{width:'100%',maxWidth:460}}>
+            <div className="step-label">② Possible Prizes</div>
+            <div className="chips">
+              {PrizeEngine.getOdds(selectedCat.prizes).map((p, i) => (
+                <span key={i} className={`chip ${revealed && p.value === prize ? 'won' : ''}`}>
+                  {selectedCat.icon} {p.value}
+                  <span style={{fontSize:'0.7rem',opacity:0.55,marginLeft:4}}>({p.pct}%)</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <ScratchCard
+            key={`${selectedKey}-${prize}`}
+            catKey={selectedKey}
+            category={selectedCat}
+            prize={prize}
+            revealed={revealed}
+            onReveal={handleReveal}
+          />
+
+          <div style={{display:'flex',gap:10,width:'100%',maxWidth:460}}>
+            <button className="btn btn-gold" style={{flex:1}} disabled={revealed} onClick={handleReveal}>✨ Reveal All</button>
+            <button className="btn btn-ghost" style={{flex:1}} onClick={reset}>🔄 New Card</button>
+          </div>
+
+          <div className={`win-banner ${revealed ? 'show' : ''}`}>
+            {revealed && `${selectedCat.icon}  You won ${prize}!  🎉`}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+//  🚀  Root App — Router
+// ════════════════════════════════════════════════════════════
+function App() {
+  const [config,        saveConfig   ] = usePrizeConfig();
+  const [settings,      saveSettings ] = useSettings();
+  const [adminUnlocked, setAdminUnlocked] = useState(false);
+  const { adminParam, skipParam, uid } = useURLParams();
+
+  const wantsAdmin  = adminParam.length > 0;
+  const gateSkipped = skipParam === settings.skipKey;
+  const autoAdmin   = adminParam === settings.adminKey;
+
+  useEffect(() => { if (autoAdmin) setAdminUnlocked(true); }, [autoAdmin]);
+
+  if (wantsAdmin) {
+    if (!adminUnlocked) return <AdminLogin correctKey={settings.adminKey} onSuccess={() => setAdminUnlocked(true)} />;
+    return (
+      <AdminPanel
+        config={config} saveConfig={saveConfig}
+        settings={settings} saveSettings={saveSettings}
+        onExit={() => window.location.href = window.location.pathname}
+      />
+    );
   }
 
-  // ════════════════════════════════════════════════
-  //  🎉  REVEAL
-  // ════════════════════════════════════════════════
-  function revealAll() {
-    if (revealed || !selectedCategory) return;
-    revealed = true;
-    ctx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
-    highlightWinningChip();
-    showWinMessage();
-    launchConfetti();
-  }
+  return <UserFlow config={config} settings={settings} uid={uid} gateSkipped={gateSkipped} />;
+}
 
-  function highlightWinningChip() {
-    const cat = PRIZE_CONFIG[selectedCategory];
-    const idx = cat.prizes.findIndex(p => p.value === currentPrize);
-    const chips = document.querySelectorAll('.chip');
-    if (chips[idx]) chips[idx].classList.add('highlight');
-  }
-
-  function showWinMessage() {
-    const cat = PRIZE_CONFIG[selectedCategory];
-    winMessage.textContent = `${cat.icon}  You won ${currentPrize} on ${cat.label}!  ${cat.icon}`;
-    winMessage.classList.add('show');
-  }
-
-  // ════════════════════════════════════════════════
-  //  🖱️  EVENTS
-  // ════════════════════════════════════════════════
-  scratchCanvas.addEventListener('mousedown', e => {
-    if (revealed) return; isDrawing = true; const {x,y} = getPos(e); scratchAt(x, y);
-  });
-  scratchCanvas.addEventListener('mousemove', e => {
-    if (!isDrawing || revealed) return; const {x,y} = getPos(e); scratchAt(x, y);
-    if (getScratchedPercent() >= REVEAL_THRESHOLD) revealAll();
-  });
-  scratchCanvas.addEventListener('mouseup',    () => isDrawing = false);
-  scratchCanvas.addEventListener('mouseleave', () => isDrawing = false);
-
-  scratchCanvas.addEventListener('touchstart', e => {
-    e.preventDefault(); if (revealed) return; isDrawing = true;
-    const {x,y} = getPos(e); scratchAt(x, y);
-  }, { passive: false });
-  scratchCanvas.addEventListener('touchmove', e => {
-    e.preventDefault(); if (!isDrawing || revealed) return;
-    const {x,y} = getPos(e); scratchAt(x, y);
-    if (getScratchedPercent() >= REVEAL_THRESHOLD) revealAll();
-  }, { passive: false });
-  scratchCanvas.addEventListener('touchend', () => isDrawing = false);
-
-  revealBtn.addEventListener('click', revealAll);
-  resetBtn.addEventListener('click',  initCard);
-
-  // ════════════════════════════════════════════════
-  //  🎊  CONFETTI
-  // ════════════════════════════════════════════════
-  function launchConfetti() {
-    confettiCanvas.width  = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
-
-    const cat       = PRIZE_CONFIG[selectedCategory];
-    const baseColor = cat.color;
-
-    const particles = Array.from({ length: 180 }, () => ({
-      x:     Math.random() * confettiCanvas.width,
-      y:     Math.random() * confettiCanvas.height - confettiCanvas.height,
-      w:     Math.random() * 10 + 6,
-      h:     Math.random() * 6  + 4,
-      color: Math.random() > 0.4 ? baseColor : `hsl(${Math.random()*360},90%,65%)`,
-      rot:   Math.random() * Math.PI * 2,
-      rotV:  (Math.random() - 0.5) * 0.15,
-      vy:    Math.random() * 3 + 2,
-      vx:    (Math.random() - 0.5) * 2,
-    }));
-
-    function draw() {
-      cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-      let alive = false;
-      particles.forEach(p => {
-        p.y += p.vy; p.x += p.vx; p.rot += p.rotV;
-        if (p.y < confettiCanvas.height + 20) alive = true;
-        cCtx.save();
-        cCtx.translate(p.x + p.w / 2, p.y + p.h / 2);
-        cCtx.rotate(p.rot);
-        cCtx.fillStyle = p.color;
-        cCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-        cCtx.restore();
-      });
-      if (alive) confettiAnim = requestAnimationFrame(draw);
-      else cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-    }
-    draw();
-  }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
